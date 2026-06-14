@@ -1,0 +1,19 @@
+{
+  "name": "pc-yordamchi",
+  "version": "1.0.0",
+  "description": "O'zbek tilida ovozli PC yordamchi",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "install-deps": "npm install"
+  },
+  "keywords": ["uzbek", "voice", "assistant", "pc", "electron"],
+  "author": "Husanbek",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

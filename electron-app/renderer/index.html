@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PC Yordamchi</title>
+<style>
+  /* ===== ASOSIY STILLAR ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-dark: #0a0e1a;
+    --bg-card: rgba(255,255,255,0.05);
+    --bg-card-hover: rgba(255,255,255,0.09);
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --accent3: #43e97b;
+    --text: #e8eaf6;
+    --text-dim: #7986cb;
+    --border: rgba(108,99,255,0.25);
+    --glow: rgba(108,99,255,0.4);
+    --danger: #ff5252;
+    --warning: #ffab40;
+    --success: #69f0ae;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 0 60px rgba(108,99,255,0.2), 0 20px 60px rgba(0,0,0,0.8);
+  }
+
+  /* ===== TITLEBAR ===== */
+  .titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(255,101,132,0.08));
+    border-bottom: 1px solid var(--border);
+    -webkit-app-region: drag;
+    cursor: move;
+  }
+
+  .titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .app-logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 4px 15px var(--glow);
+    animation: logoFloat 3s ease-in-out infinite;
+  }
+
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .app-title { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+  .app-subtitle { font-size: 10px; color: var(--text-dim); }
+
+  .titlebar-btns {
+    display: flex; gap: 8px;
+    -webkit-app-region: no-drag;
+  }
+
+  .tb-btn {
+    width: 28px; height: 28px; border-radius: 8px;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; transition: all 0.2s;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-dim);
+  }
+
+  .tb-btn:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+  .tb-btn.close:hover { background: var(--danger); color: white; }
+
+  /* ===== STATUS BAR ===== */
+  .status-bar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .stat-chip {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+    transition: all 0.3s;
+  }
+
+  .stat-chip:hover { background: var(--bg-card-hover); border-color: var(--accent); }
+  .stat-icon { font-size: 13px; }
+  .stat-val { color: var(--accent); font-weight: 600; }
+
+  /* ===== VOICE SECTION ===== */
+  .voice-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 14px 14px;
+    gap: 14px;
+  }
+
+  .voice-btn-wrapper {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Pulse rings */
+  .pulse-ring {
+    position: absolute;
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    animation: none;
+    pointer-events: none;
+  }
+
+  .pulse-ring:nth-child(2) { width: 110px; height: 110px; }
+  .pulse-ring:nth-child(3) { width: 130px; height: 130px; }
+
+  @keyframes pulseRing {
+    0% { opacity: 0.6; transform: scale(0.8); }
+    100% { opacity: 0; transform: scale(1.1); }
+  }
+
+  .voice-btn-wrapper.listening .pulse-ring:nth-child(1) {
+    animation: pulseRing 1.5s ease-out infinite;
+  }
+  .voice-btn-wrapper.listening .pulse-ring:nth-child(2) {
+    animation: pulseRing 1.5s ease-out infinite 0.3s;
+  }
+  .voice-btn-wrapper.listening .pulse-ring:nth-child(3) {
+    animation: pulseRing 1.5s ease-out infinite 0.6s;
+  }
+
+  .voice-btn {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 30px;
+    position: relative; z-index: 1;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: linear-gradient(135deg, var(--accent), #9c8ffa);
+    box-shadow: 0 8px 30px var(--glow), 0 4px 15px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .voice-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px var(--glow); }
+  .voice-btn:active { transform: scale(0.95); }
+
+  .voice-btn.listening {
+    background: linear-gradient(135deg, var(--accent2), #ff8ca3);
+    box-shadow: 0 8px 30px rgba(255,101,132,0.5);
+    animation: listenPulse 0.8s ease-in-out infinite alternate;
+  }
+
+  @keyframes listenPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+  }
+
+  .voice-btn.processing {
+    background: linear-gradient(135deg, var(--accent3), #a8ff78);
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Waveform */
+  .waveform {
+    display: flex; align-items: center; gap: 3px;
+    height: 36px; opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .waveform.active { opacity: 1; }
+
+  .wave-bar {
+    width: 4px;
+    background: linear-gradient(to top, var(--accent), var(--accent2));
+    border-radius: 2px;
+    animation: none;
+    height: 6px;
+    transition: height 0.1s;
+  }
+
+  .waveform.active .wave-bar {
+    animation: waveBounce 0.6s ease-in-out infinite;
+  }
+
+  .wave-bar:nth-child(1) { animation-delay: 0s; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+  .wave-bar:nth-child(5) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(6) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(7) { animation-delay: 0s; }
+
+  @keyframes waveBounce {
+    0%, 100% { height: 6px; }
+    50% { height: 28px; }
+  }
+
+  .voice-hint {
+    font-size: 12px; color: var(--text-dim);
+    text-align: center; line-height: 1.4;
+  }
+
+  .voice-hint strong { color: var(--accent); }
+
+  /* ===== INPUT ===== */
+  .input-section {
+    padding: 0 14px 10px;
+    display: flex; gap: 8px;
+  }
+
+  .text-input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .text-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    background: rgba(108,99,255,0.08);
+  }
+
+  .text-input::placeholder { color: var(--text-dim); }
+
+  .send-btn {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), #9c8ffa);
+    color: white; font-size: 18px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 15px var(--glow);
+  }
+
+  .send-btn:hover { transform: scale(1.05); }
+  .send-btn:active { transform: scale(0.95); }
+
+  /* ===== QUICK COMMANDS ===== */
+  .quick-section {
+    padding: 0 14px 10px;
+  }
+
+  .section-title {
+    font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+
+  .section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+
+  .quick-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    color: var(--text);
+  }
+
+  .quick-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--glow);
+  }
+
+  .quick-btn:active { transform: scale(0.95) translateY(0); }
+
+  .quick-btn .qb-icon { font-size: 18px; }
+  .quick-btn .qb-text { font-size: 9px; color: var(--text-dim); text-align: center; line-height: 1.2; }
+
+  /* ===== HISTORY ===== */
+  .history-section {
+    padding: 0 14px;
+    flex: 1;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  .history-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 6px;
+    padding-right: 4px;
+    max-height: 200px;
+  }
+
+  .history-list::-webkit-scrollbar { width: 4px; }
+  .history-list::-webkit-scrollbar-track { background: transparent; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .history-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex; flex-direction: column; gap: 3px;
+    animation: slideIn 0.3s ease-out;
+    transition: all 0.2s;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .history-item:hover { background: var(--bg-card-hover); }
+
+  .h-input { font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 5px; }
+  .h-input::before { content: '🎤'; font-size: 11px; }
+  .h-response { font-size: 13px; color: var(--text); }
+  .h-time { font-size: 10px; color: var(--text-dim); align-self: flex-end; }
+
+  .history-item.success .h-response { color: var(--success); }
+  .history-item.error .h-response { color: var(--danger); }
+  .history-item.info .h-response { color: var(--accent); }
+
+  /* ===== CODE PANEL ===== */
+  .code-panel {
+    margin: 0 14px 10px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .code-panel.active { display: block; }
+
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(108,99,255,0.1);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang-select {
+    background: transparent; border: none; color: var(--accent);
+    font-size: 12px; font-weight: 600; cursor: pointer; outline: none;
+  }
+
+  .code-lang-select option { background: var(--bg-dark); color: var(--text); }
+
+  .code-run-btn {
+    background: var(--accent3); border: none; border-radius: 6px;
+    padding: 4px 12px; color: #000; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .code-run-btn:hover { transform: scale(1.05); }
+
+  .code-textarea {
+    width: 100%; min-height: 80px; max-height: 150px;
+    background: transparent; border: none;
+    color: var(--accent3); font-family: 'Consolas', monospace;
+    font-size: 12px; padding: 10px 12px;
+    resize: vertical; outline: none;
+  }
+
+  .code-output {
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+    font-family: 'Consolas', monospace;
+    font-size: 11px; color: var(--text-dim);
+    max-height: 80px; overflow-y: auto;
+    display: none;
+  }
+
+  .code-output.active { display: block; }
+  .code-output.success { color: var(--success); }
+  .code-output.error { color: var(--danger); }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav {
+    display: flex; gap: 4px;
+    padding: 10px 14px 12px;
+    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+
+  .nav-btn {
+    flex: 1; padding: 7px 4px;
+    background: transparent; border: none; cursor: pointer;
+    border-radius: 8px; color: var(--text-dim);
+    font-size: 11px; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+
+  .nav-btn .nb-icon { font-size: 16px; }
+  .nav-btn:hover { background: var(--bg-card); color: var(--text); }
+  .nav-btn.active { color: var(--accent); background: rgba(108,99,255,0.1); }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; bottom: 70px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(30,30,50,0.95);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 20px;
+    font-size: 13px; opacity: 0;
+    transition: all 0.3s; pointer-events: none;
+    z-index: 1000; white-space: nowrap;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+
+  .toast.show {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+  }
+
+  /* ===== LOADING ===== */
+  .loading-dot {
+    display: inline-block; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--accent);
+    margin: 0 2px;
+    animation: dotBounce 1s ease-in-out infinite;
+  }
+
+  .loading-dot:nth-child(2) { animation-delay: 0.15s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: scale(0.5); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ===== SYSTEM INFO MODAL ===== */
+  .sysinfo-modal {
+    position: fixed; inset: 0;
+    background: rgba(10,14,26,0.95);
+    border-radius: 20px;
+    padding: 20px;
+    display: none; flex-direction: column; gap: 12px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .sysinfo-modal.active { display: flex; }
+
+  .sysinfo-close {
+    align-self: flex-end; background: none; border: none;
+    color: var(--text-dim); font-size: 20px; cursor: pointer;
+    padding: 4px;
+  }
+
+  .sysinfo-close:hover { color: var(--danger); }
+
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+  }
+
+  .metric-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--text-dim); margin-bottom: 8px;
+  }
+
+  .metric-label strong { color: var(--text); font-size: 14px; }
+
+  .progress-bar {
+    height: 6px; background: rgba(255,255,255,0.1);
+    border-radius: 3px; overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 1s ease;
+    background: linear-gradient(to right, var(--accent), var(--accent2));
+  }
+
+  .progress-fill.warn { background: linear-gradient(to right, var(--warning), var(--accent2)); }
+  .progress-fill.danger { background: linear-gradient(to right, var(--danger), var(--warning)); }
+
+  /* ===== PARTICLES ===== */
+  .particles {
+    position: fixed; inset: 0; pointer-events: none;
+    overflow: hidden; border-radius: 20px; z-index: 0;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+    animation: float linear infinite;
+  }
+
+  @keyframes float {
+    0% { opacity: 0; transform: translateY(100%) scale(0); }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.2; }
+    100% { opacity: 0; transform: translateY(-100vh) scale(1.5); }
+  }
+
+  .main-content {
+    position: relative; z-index: 1;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+
+<!-- Background particles -->
+<div class="particles" id="particles"></div>
+
+<!-- System info modal -->
+<div class="sysinfo-modal" id="sysinfoModal">
+  <button class="sysinfo-close" onclick="closeSysinfo()">✕</button>
+  <div style="font-size:16px;font-weight:700;margin-bottom:4px;">📊 Tizim Holati</div>
+
+  <div class="metric-card">
+    <div class="metric-label">
+      <span>⚡ CPU</span>
+      <strong id="cpuVal">--</strong>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="cpuBar" style="width:0%"></div></div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-label">
+      <span>🧠 RAM</span>
+      <strong id="ramVal">--</strong>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="ramBar" style="width:0%"></div></div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-label">
+      <span>💾 Disk</span>
+      <strong id="diskVal">--</strong>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="diskBar" style="width:0%"></div></div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-label">
+      <span>🔋 Batareya</span>
+      <strong id="batVal">--</strong>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="batBar" style="width:0%"></div></div>
+  </div>
+
+  <div style="text-align:center;color:var(--text-dim);font-size:11px;" id="sysHostname"></div>
+</div>
+
+<div class="main-content">
+  <!-- TITLEBAR -->
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <div class="app-logo">🤖</div>
+      <div>
+        <div class="app-title">PC Yordamchi</div>
+        <div class="app-subtitle">O'zbek tilida ovozli boshqaruv</div>
+      </div>
+    </div>
+    <div class="titlebar-btns">
+      <button class="tb-btn" onclick="toggleSysinfo()" title="Tizim holati">📊</button>
+      <button class="tb-btn" onclick="window.electronAPI?.minimize()" title="Kichraytirish">─</button>
+      <button class="tb-btn close" onclick="window.electronAPI?.close()" title="Yopish">✕</button>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar" id="statusBar">
+    <div class="stat-chip"><span class="stat-icon">🕐</span><span class="stat-val" id="timeChip">--:--</span></div>
+    <div class="stat-chip"><span class="stat-icon">⚡</span><span class="stat-val" id="cpuChip">--%</span></div>
+    <div class="stat-chip"><span class="stat-icon">🧠</span><span class="stat-val" id="ramChip">--%</span></div>
+    <div class="stat-chip"><span class="stat-icon">🔋</span><span class="stat-val" id="batChip">--%</span></div>
+  </div>
+
+  <!-- VOICE SECTION -->
+  <div class="voice-section">
+    <div class="voice-btn-wrapper" id="voiceBtnWrapper">
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+    </div>
+
+    <div class="waveform" id="waveform">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+
+    <div class="voice-hint" id="voiceHint">
+      Bosing va gapiring<br>
+      <strong>Ctrl+Shift+V</strong> — tez yoqish
+    </div>
+  </div>
+
+  <!-- TEXT INPUT -->
+  <div class="input-section">
+    <input type="text" class="text-input" id="textInput"
+      placeholder="Buyruq yozing... (masalan: brauzer och)"
+      onkeydown="handleInputKey(event)">
+    <button class="send-btn" onclick="sendTextCommand()">➤</button>
+  </div>
+
+  <!-- QUICK COMMANDS -->
+  <div class="quick-section" id="quickSection">
+    <div class="section-title">Tez buyruqlar</div>
+    <div class="quick-grid" id="quickGrid">
+      <!-- JS tomonidan to'ldiriladi -->
+    </div>
+  </div>
+
+  <!-- CODE PANEL -->
+  <div class="code-panel" id="codePanel">
+    <div class="code-header">
+      <select class="code-lang-select" id="codeLang">
+        <option value="python">🐍 Python</option>
+        <option value="node">📗 Node.js</option>
+      </select>
+      <button class="code-run-btn" onclick="runCode()">▶ Ishga tushir</button>
+    </div>
+    <textarea class="code-textarea" id="codeArea"
+      placeholder="# Kodni shu yerga yozing...
+print('Salom, Husanbek!')"
+      spellcheck="false"></textarea>
+    <div class="code-output" id="codeOutput"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="history-section">
+    <div class="section-title">Buyruqlar tarixi</div>
+    <div class="history-list" id="historyList">
+      <div class="history-item info">
+        <div class="h-response">👋 Salom! Men PC Yordamchiman. Buyruq bering!</div>
+        <div class="h-time">Hozir</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+      <span class="nb-icon">🏠</span><span>Bosh</span>
+    </button>
+    <button class="nav-btn" id="nav-code" onclick="switchTab('code')">
+      <span class="nb-icon">💻</span><span>Kod</span>
+    </button>
+    <button class="nav-btn" id="nav-files" onclick="switchTab('files')">
+      <span class="nb-icon">📁</span><span>Fayllar</span>
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
+      <span class="nb-icon">⚙️</span><span>Sozlama</span>
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const API_BASE = 'http://localhost:8000/api';
+let isListening = false;
+let recognition = null;
+let currentTab = 'home';
+
+// ===== PARTICLES =====
+function createParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 15) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    p.style.opacity = Math.random() * 0.4;
+    p.style.width = p.style.height = (1 + Math.random() * 3) + 'px';
+    const colors = ['#6c63ff','#ff6584','#43e97b','#4facfe'];
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.appendChild(p);
+  }
+}
+
+// ===== VOICE RECOGNITION =====
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn('Speech Recognition qo\'llab-quvvatlanmaydi');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'uz-UZ';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+  recognition.maxAlternatives = 3;
+
+  recognition.onstart = () => {
+    setListeningState(true);
+  };
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[event.results.length - 1];
+    const text = transcript[0].transcript;
+    document.getElementById('textInput').value = text;
+
+    if (transcript.isFinal) {
+      setProcessingState(true);
+      sendCommand(text);
+    }
+  };
+
+  recognition.onend = () => {
+    setListeningState(false);
+  };
+
+  recognition.onerror = (event) => {
+    setListeningState(false);
+    if (event.error !== 'no-speech' && event.error !== 'aborted') {
+      showToast('❌ Ovoz tanishda xato: ' + event.error);
+    }
+  };
+}
+
+function toggleVoice() {
+  if (!recognition) {
+    showToast('⚠️ Brauzer ovoz tanishni qo\'llab-quvvatlamaydi');
+    return;
+  }
+
+  if (isListening) {
+    recognition.stop();
+  } else {
+    recognition.start();
+  }
+}
+
+function setListeningState(listening) {
+  isListening = listening;
+  const btn = document.getElementById('voiceBtn');
+  const wrapper = document.getElementById('voiceBtnWrapper');
+  const waveform = document.getElementById('waveform');
+  const hint = document.getElementById('voiceHint');
+
+  if (listening) {
+    btn.textContent = '⏹';
+    btn.className = 'voice-btn listening';
+    wrapper.classList.add('listening');
+    waveform.classList.add('active');
+    hint.innerHTML = '<strong style="color:var(--accent2)">Gapiring...</strong><br>Tugatish uchun bosing';
+  } else {
+    btn.textContent = '🎤';
+    btn.className = 'voice-btn';
+    wrapper.classList.remove('listening');
+    waveform.classList.remove('active');
+    hint.innerHTML = 'Bosing va gapiring<br><strong>Ctrl+Shift+V</strong> — tez yoqish';
+  }
+}
+
+function setProcessingState(processing) {
+  const btn = document.getElementById('voiceBtn');
+  if (processing) {
+    btn.textContent = '⚙';
+    btn.className = 'voice-btn processing';
+  } else {
+    setListeningState(false);
+  }
+}
+
+// ===== COMMANDS =====
+async function sendCommand(text) {
+  if (!text.trim()) return;
+
+  document.getElementById('textInput').value = text;
+
+  try {
+    const res = await fetch(`${API_BASE}/command/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+
+    const data = await res.json();
+    setProcessingState(false);
+
+    addToHistory(text, data.response, data.action_result?.success !== false ? 'success' : 'error');
+    showToast(data.response);
+
+    // Maxsus javoblar
+    if (data.intent === 'get_system_info') {
+      loadSysinfo();
+      document.getElementById('sysinfoModal').classList.add('active');
+    } else if (data.intent === 'get_time' && data.action_result?.success) {
+      const t = data.action_result;
+      showToast(`🕐 ${t.day}, ${t.date} — soat ${t.time}`);
+    }
+
+    document.getElementById('textInput').value = '';
+  } catch (err) {
+    setProcessingState(false);
+    addToHistory(text, '❌ Django server ishlamayapti. Avval backendni ishga tushiring!', 'error');
+    showToast('❌ Server bilan aloqa yo\'q');
+  }
+}
+
+async function sendTextCommand() {
+  const input = document.getElementById('textInput');
+  const text = input.value.trim();
+  if (!text) return;
+  setProcessingState(true);
+  await sendCommand(text);
+}
+
+function handleInputKey(e) {
+  if (e.key === 'Enter') sendTextCommand();
+}
+
+// ===== QUICK COMMANDS =====
+const QUICK_CMDS = [
+  { icon: '🌐', text: 'Brauzer', cmd: 'brauzer och' },
+  { icon: '💻', text: 'VS Code', cmd: 'vscode och' },
+  { icon: '⌨️', text: 'Terminal', cmd: 'terminal och' },
+  { icon: '📁', text: 'Fayllar', cmd: 'fayl menejeri' },
+  { icon: '🧮', text: 'Hisob', cmd: 'kalkulyator' },
+  { icon: '▶️', text: 'YouTube', cmd: 'youtube' },
+  { icon: '🔍', text: 'Google', cmd: 'google' },
+  { icon: '🐙', text: 'GitHub', cmd: 'github' },
+  { icon: '🔊', text: 'Ovoz+', cmd: 'ovozni oshir' },
+  { icon: '🔉', text: 'Ovoz-', cmd: 'ovozni kamayt' },
+  { icon: '🔇', text: 'Jim', cmd: 'jim' },
+  { icon: '📸', text: 'Ekran', cmd: 'skrinshot' },
+  { icon: '🔒', text: 'Qulf', cmd: 'qulflash' },
+  { icon: '😴', text: 'Uxlat', cmd: 'uxlatish' },
+  { icon: '📊', text: 'Holat', cmd: 'tizim holati' },
+];
+
+function renderQuickCommands() {
+  const grid = document.getElementById('quickGrid');
+  grid.innerHTML = QUICK_CMDS.map(c => `
+    <button class="quick-btn" onclick="sendCommand('${c.cmd}')">
+      <span class="qb-icon">${c.icon}</span>
+      <span class="qb-text">${c.text}</span>
+    </button>
+  `).join('');
+}
+
+// ===== HISTORY =====
+function addToHistory(input, response, type = 'info') {
+  const list = document.getElementById('historyList');
+  const now = new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+
+  const item = document.createElement('div');
+  item.className = `history-item ${type}`;
+  item.innerHTML = `
+    <div class="h-input">${input}</div>
+    <div class="h-response">${response}</div>
+    <div class="h-time">${now}</div>
+  `;
+
+  list.insertBefore(item, list.firstChild);
+
+  // Max 30 ta saqlash
+  while (list.children.length > 30) {
+    list.removeChild(list.lastChild);
+  }
+}
+
+// ===== TOAST =====
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ===== STATUS UPDATE =====
+async function updateStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/status/`);
+    const data = await res.json();
+
+    // Vaqt
+    const time = data.time;
+    if (time?.time) {
+      document.getElementById('timeChip').textContent = time.time.slice(0,5);
+    }
+
+    // CPU
+    const cpu = data.system?.cpu;
+    if (cpu) {
+      document.getElementById('cpuChip').textContent = cpu.percent + '%';
+    }
+
+    // RAM
+    const ram = data.system?.ram;
+    if (ram) {
+      document.getElementById('ramChip').textContent = ram.percent + '%';
+    }
+
+    // Battery
+    const bat = data.battery;
+    if (bat) {
+      const icon = bat.plugged ? '🔌' : '🔋';
+      document.getElementById('batChip').textContent = icon + ' ' + Math.round(bat.percent) + '%';
+    }
+
+  } catch (e) {
+    document.getElementById('timeChip').textContent = new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+  }
+}
+
+// ===== SYSTEM INFO MODAL =====
+async function loadSysinfo() {
+  try {
+    const res = await fetch(`${API_BASE}/status/`);
+    const data = await res.json();
+
+    const sys = data.system;
+    const bat = data.battery;
+
+    if (sys?.cpu) {
+      const p = sys.cpu.percent;
+      document.getElementById('cpuVal').textContent = p + '%';
+      const bar = document.getElementById('cpuBar');
+      bar.style.width = p + '%';
+      bar.className = 'progress-fill' + (p > 80 ? ' danger' : p > 50 ? ' warn' : '');
+    }
+
+    if (sys?.ram) {
+      const p = sys.ram.percent;
+      document.getElementById('ramVal').textContent = `${sys.ram.used}/${sys.ram.total} GB`;
+      const bar = document.getElementById('ramBar');
+      bar.style.width = p + '%';
+      bar.className = 'progress-fill' + (p > 85 ? ' danger' : p > 65 ? ' warn' : '');
+    }
+
+    if (sys?.disk) {
+      const p = sys.disk.percent;
+      document.getElementById('diskVal').textContent = `${sys.disk.used}/${sys.disk.total} GB`;
+      const bar = document.getElementById('diskBar');
+      bar.style.width = p + '%';
+      bar.className = 'progress-fill' + (p > 90 ? ' danger' : p > 75 ? ' warn' : '');
+    }
+
+    if (bat) {
+      const p = bat.percent;
+      const plug = bat.plugged ? ' 🔌' : '';
+      document.getElementById('batVal').textContent = Math.round(p) + '%' + plug;
+      const bar = document.getElementById('batBar');
+      bar.style.width = p + '%';
+      bar.className = 'progress-fill' + (p < 20 ? ' danger' : p < 40 ? ' warn' : '');
+    }
+
+    if (sys?.hostname) {
+      document.getElementById('sysHostname').textContent = '🖥️ ' + sys.hostname + ' | ' + sys.platform;
+    }
+  } catch (e) {
+    showToast('❌ Server bilan aloqa yo\'q');
+  }
+}
+
+function toggleSysinfo() {
+  const modal = document.getElementById('sysinfoModal');
+  if (modal.classList.contains('active')) {
+    modal.classList.remove('active');
+  } else {
+    loadSysinfo();
+    modal.classList.add('active');
+  }
+}
+
+function closeSysinfo() {
+  document.getElementById('sysinfoModal').classList.remove('active');
+}
+
+// ===== TAB SWITCHING =====
+function switchTab(tab) {
+  currentTab = tab;
+
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + tab)?.classList.add('active');
+
+  const quickSection = document.getElementById('quickSection');
+  const codePanel = document.getElementById('codePanel');
+
+  if (tab === 'code') {
+    quickSection.style.display = 'none';
+    codePanel.classList.add('active');
+  } else if (tab === 'files') {
+    quickSection.style.display = '';
+    codePanel.classList.remove('active');
+    sendCommand('fayllarni ko\'rsat');
+  } else if (tab === 'settings') {
+    quickSection.style.display = 'none';
+    codePanel.classList.remove('active');
+    showSettings();
+  } else {
+    quickSection.style.display = '';
+    codePanel.classList.remove('active');
+  }
+}
+
+function showSettings() {
+  addToHistory('Sozlamalar', `
+⚙️ Sozlamalar:
+• API: ${API_BASE}
+• Ovoz: ${recognition ? '✅ Tayyor' : '❌ Qo\'llab-quvvatlanmaydi'}
+• Ctrl+Shift+V — ovoz yoqish
+  `, 'info');
+}
+
+// ===== CODE RUNNER =====
+async function runCode() {
+  const lang = document.getElementById('codeLang').value;
+  const code = document.getElementById('codeArea').value;
+  const output = document.getElementById('codeOutput');
+
+  if (!code.trim()) { showToast('⚠️ Kod yozing!'); return; }
+
+  output.textContent = '⏳ Bajarilmoqda...';
+  output.className = 'code-output active';
+
+  try {
+    const res = await fetch(`${API_BASE}/code/run/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang, code })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      output.textContent = '✅ ' + (data.output || '(chiqish yo\'q)');
+      output.className = 'code-output active success';
+    } else {
+      output.textContent = '❌ ' + (data.error || 'Xato');
+      output.className = 'code-output active error';
+    }
+  } catch (e) {
+    output.textContent = '❌ Server bilan aloqa yo\'q';
+    output.className = 'code-output active error';
+  }
+}
+
+// ===== ELECTRON INTEGRATION =====
+window.electronAPI?.onToggleVoice(() => toggleVoice());
+
+// ===== WAVE BARS (Real audio) =====
+let audioCtx, analyser, dataArray, animFrame;
+
+async function startAudioVisualization() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx = new AudioContext();
+    const source = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 64;
+    source.connect(analyser);
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    function update() {
+      if (!isListening) {
+        document.querySelectorAll('.wave-bar').forEach(b => b.style.height = '6px');
+        return;
+      }
+      analyser.getByteFrequencyData(dataArray);
+      const bars = document.querySelectorAll('.wave-bar');
+      bars.forEach((bar, i) => {
+        const val = dataArray[i * 2] || 0;
+        bar.style.height = Math.max(4, val / 6) + 'px';
+      });
+      animFrame = requestAnimationFrame(update);
+    }
+    update();
+  } catch (e) {
+    // Mikrofon ruxsati yo'q, CSS animatsiyadan foydalanish davom etadi
+  }
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  createParticles();
+  initSpeechRecognition();
+  renderQuickCommands();
+  updateStatus();
+
+  // Status har 10 soniyada yangilanadi
+  setInterval(updateStatus, 10000);
+
+  // Audio visualizer
+  startAudioVisualization();
+
+  // Greet
+  setTimeout(() => showToast('👋 Salom! Gapiring yoki yozing...'), 500);
+});
+</script>
+</body>
+</html>

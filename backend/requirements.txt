@@ -1,0 +1,11 @@
+django>=4.2
+djangorestframework>=3.14
+django-cors-headers>=4.3
+psutil>=5.9
+pywin32>=306
+pycaw>=20230407
+comtypes>=1.2
+openai>=1.3
+pydub>=0.25
+SpeechRecognition>=3.10
+pyaudio>=0.2.13
